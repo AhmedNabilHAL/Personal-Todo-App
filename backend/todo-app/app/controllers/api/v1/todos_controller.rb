@@ -1,69 +1,80 @@
 class Api::V1::TodosController < ApplicationController
-    
+    include ApplicationHelper
+
     rescue_from Exception, :with => :handle_exception
-    before_action :find_todo_list, only: [:show, :update, :destroy]
-    before_action :find_user, only: [:index, :show, :create, :update, :destroy]
+    
+    before_action :require_user_logged_in
+    before_action :check_todo_owner, only: [:show, :update, :destroy]
+    before_action :check_todo_list_owner, only: [:index, :show, :create, :update, :destroy]
 
-    # GET /users/:user_id/todo_lists
+    # GET /users/:user_id/todo_lists/:todo_list_id/todos
     def index
-        # @todo_lists = TodoList.where(user_id: params[:user_id])
-        # render json: @todo_lists, status: :ok
+        @todo = Todo.where(user_id: params[:user_id], todo_list_id: params[:todo_list_id])
+        render json: @todo, status: :ok
     end
 
-    # GET /users/:user_id/todo_lists/:id
+    # GET /users/:user_id/todo_lists/:todo_list_id/todos/:id
     def show
-        # if (@todo_list[:user_id] == @user[:id])
-        #     render json: @todo_list, status: :ok
-        # else 
-        #     render json: {error: "Todo list doesn't belong to user" }, status: :unauthorized
-        # end
+        render json: @todo, status: :ok
     end
 
-    # POST /users/:user_id/todo_lists
+    # POST /users/:user_id/todo_lists/:todo_list_id/todos
     def create
-        # @todo_list = TodoList.new(todo_list_params)
-        # if @todo_list.save && @todo_list[:user_id] == @user[:id]
-        #     render json: @todo_list, status: :created
-        # else
-        #     render json: { error: 'Unable to create todo list'}, status: :bad_request
-        # end
+        @todo = Todo.new(todo_params)
+        if @todo.save
+            render json: @todo, status: :created
+        else
+            render json: { error: 'Unable to create todo'}, status: :bad_request
+        end
     end
 
-    # PATCH /users/:id/todo_lists/:id
+    # PATCH /users/:user_id/todo_lists/:todo_list_id/todos/:id
     def update
-        # if @todo_list && @todo_list[:user_id] == @user[:id]
-        #     @todo_list.update(todo_list_params)
-        #     render json: @todo_list, status: :ok
-        # else
-        #     render json: { error: 'Unable to update todo list' }, status: :bad_request
-        # end
+        if @todo
+            @todo.update(todo_params)
+            render json: @todo, status: :ok
+        else
+            render json: { error: 'Unable to update todo' }, status: :bad_request
+        end
     end
 
-    # DELETE /users/:user_id/todo/todo_lists/:id
+    # DELETE /users/:user_id/todo_lists/:todo_list_id/todos/:id
     def destroy
-        # if @todo_list && @todo_list[:user_id] == @user[:id]
-        #     @todo_list.destroy
-        #     render json: { message: 'Todo list deleted successfully' }, status: :ok
-        # else
-        #     render json: { error: 'Unable to delete todo list' }, status: :bad_request
-        # end
+        if @todo
+            @todo.destroy
+            render json: { message: 'Todo deleted successfully' }, status: :ok
+        else
+            render json: { error: 'Unable to delete todo' }, status: :bad_request
+        end
     end
 
     private
 
-    # def todo_list_params
-    #     params.require(:todo_list).permit(:name, :user_id)
-    # end
+    def todo_params
+        puts(params)
+        params.require(:todo).permit(:todo_text, :user_id, :todo_list_id)
+    end
 
-    # def find_user
-    #     @user = User.find(params[:user_id])
-    # end
+    def check_todo_list_owner
+        @user = User.find(params[:user_id])
+        @todo_list = TodoList.find(params[:todo_list_id])
+        if @user[:id] != @todo_list[:user_id]
+            return render json: {error: "Todo list doesn't belong to user."}, status: :unauthorized
+        end
+    end
 
-    # def find_todo_list
-    #     @todo_list = TodoList.find(params[:id])
-    # end
+    def check_todo_owner
+        @user = User.find(params[:user_id])
+        @todo_list = TodoList.find(params[:todo_list_id])
+        @todo = Todo.find(params[:id])
+        if @user[:id] != @todo[:user_id]
+            return render json: {error: "Todo doesn't belong to user."}, status: :unauthorized
+        elsif @todo_list[:id] != @todo[:todo_list_id]
+            return render json: {error: "Todo doesn't belong to todo list."}, status: :unauthorized
+        end
+    end
 
-    # def handle_exception(error)
-    #     render json: { error: error.message }, status: :bad_request
-    # end
+    def handle_exception(error)
+        render json: { error: error.message }, status: :bad_request
+    end
 end

@@ -18,6 +18,7 @@ class Api::V1::UsersController < ApplicationController
     def create
         @user = User.new(user_params)
         if @user.save
+            session[:user_id] = @user.id
             render json: @user, status: :created
         else
             render json: { error: 'Unable to create user'}, status: :bad_request
@@ -26,12 +27,12 @@ class Api::V1::UsersController < ApplicationController
 
     # PATCH /users/:id
     def update
-        if @user
-            @user.update(user_params)
-            render json: { message: 'User updated successfully' }, status: :ok
-        else
-            render json: { error: 'Unable to update user' }, status: :bad_request
-        end
+        # if @user
+        #     @user.update(user_params)
+        #     render json: { message: 'User updated successfully' }, status: :ok
+        # else
+        #     render json: { error: 'Unable to update user' }, status: :bad_request
+        # end
     end
 
     # DELETE /users/:id
@@ -47,7 +48,7 @@ class Api::V1::UsersController < ApplicationController
     private
 
     def user_params
-        params.require(:user).permit(:username, :email, :password_digest)
+        params.require(:user).permit(:username, :email, :password, :password_confirmation)
     end
 
     def find_user

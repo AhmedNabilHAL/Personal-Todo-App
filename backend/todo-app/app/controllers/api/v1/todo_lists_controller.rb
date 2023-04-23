@@ -1,6 +1,9 @@
 class Api::V1::TodoListsController < ApplicationController
+    include ApplicationHelper
 
     rescue_from Exception, :with => :handle_exception
+    
+    before_action :require_user_logged_in
     before_action :find_todo_list, only: [:show, :update, :destroy]
     before_action :find_user, only: [:index, :show, :create, :update, :destroy]
 
