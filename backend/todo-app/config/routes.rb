@@ -5,12 +5,19 @@ Rails.application.routes.draw do
   # root "articles#index"
   namespace :api do
     namespace :v1 do
+
       post "/login", to: "sessions#login"
-      post "/signup", to: "sessions#create"
       post "/logout", to: "sessions#destroy"
       get "/logout", to: "sessions#destory"
-      resources :users do
-        resources :todo_lists do
+      
+      resources :users
+      get "/users/profile", to: "users#show_profile"
+      resources :todo_lists
+      resources :todos
+
+      namespace :admin do
+        resources :users do
+          resources :todo_lists
           resources :todos
         end
       end

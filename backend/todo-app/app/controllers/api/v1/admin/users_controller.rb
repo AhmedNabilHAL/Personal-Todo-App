@@ -1,10 +1,8 @@
 class Api::V1::UsersController < ApplicationController
     include ApplicationHelper
-
-    wrap_parameters :user, include: [:username, :email, :role, :password, :password_confirmation]
     
     rescue_from Exception, :with => :handle_exception
-    before_action :require_user_logged_in, except: [:create]
+    before_action :require_admin
     before_action :find_user, only: [:show, :update, :destroy]
 
     # GET /users
@@ -18,17 +16,11 @@ class Api::V1::UsersController < ApplicationController
         render json: @user, status: :ok
     end
 
-    # GET /users/:id
-    def show_profile
-        @user = User.find(session[:user_id])
-        render json: @user, status: :ok
-    end
-
     # POST /users
     def create
         @user = User.new(user_params)
-        if @user.role != "admin" && @user.save
-            session[:user_id] = @user.id
+        if @user.save
+            # session[:user_id] = @user.id
             render json: @user, status: :created
         else
             render json: { error: 'Unable to create user'}, status: :bad_request
@@ -37,7 +29,7 @@ class Api::V1::UsersController < ApplicationController
 
     # PATCH /users/:id
     def update
-        if session[:user_id] == @user.id && @user
+        if @user
             @user.update(user_params)
             render json: { message: 'User updated successfully' }, status: :ok
         else
@@ -47,7 +39,7 @@ class Api::V1::UsersController < ApplicationController
 
     # DELETE /users/:id
     def destroy
-        if session[:user_id] == @user.id && @user
+        if @user
             @user.destroy
             render json: { message: 'User deleted successfully' }, status: :ok
         else

@@ -3,23 +3,23 @@ class Api::V1::TodoListsController < ApplicationController
 
     rescue_from Exception, :with => :handle_exception
     
-    before_action :require_user_logged_in
-    before_action :check_todo_list_owner, only: [:show, :update, :destroy]
+    before_action :require_admin
+    before_action :check_todo_list_owner, only: [:show, :update, :destory]
 
-    # GET /todo_lists
+    # GET /users/:user_id/todo_lists
     def index
-        @todo_lists = TodoList.where(user_id: session[:user_id])
+        @todo_lists = TodoList.where(user_id: params[:user_id])
         render json: @todo_lists, status: :ok
     end
 
-    # GET /todo_lists/:id
+    # GET /users/:user_id/todo_lists/:id
     def show
         render json: @todo_list, status: :ok
     end
 
-    # POST /todo_lists
+    # POST /users/:user_id/todo_lists
     def create
-        @todo_list = TodoList.new(name: todo_list_params[:name], user_id: session[:user_id])
+        @todo_list = TodoList.new(todo_list_params)
         if @todo_list.save
             render json: @todo_list, status: :created
         else
@@ -27,7 +27,7 @@ class Api::V1::TodoListsController < ApplicationController
         end
     end
 
-    # PATCH /todo_lists/:id
+    # PATCH /users/:id/todo_lists/:id
     def update
         if @todo_list
             @todo_list.update(todo_list_params)
@@ -37,7 +37,7 @@ class Api::V1::TodoListsController < ApplicationController
         end
     end
 
-    # DELETE /todo_lists/:id
+    # DELETE /users/:user_id/todo/todo_lists/:id
     def destroy
         if @todo_list
             @todo_list.destroy
@@ -50,12 +50,12 @@ class Api::V1::TodoListsController < ApplicationController
     private
 
     def todo_list_params
-        params.require(:todo_list).permit(:name)
+        params.require(:todo_list).permit(:name, :user_id)
     end
 
     def check_todo_list_owner
-        @user = User.find(session[:user_id])
-        @todo_list = TodoList.find(params[:id])
+        @user = User.find(params[:user_id])
+        @todo_list = TodoList.find(params[:todo_list_id])
         if !@user || @user.id != @todo_list.user_id
             return render json: {error: "Todo list doesn't belong to user."}, status: :unauthorized
         end

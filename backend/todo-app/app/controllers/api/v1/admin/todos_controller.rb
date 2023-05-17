@@ -3,32 +3,31 @@ class Api::V1::TodosController < ApplicationController
 
     rescue_from Exception, :with => :handle_exception
     
-    before_action :require_user_logged_in
+    before_action :require_admin
     before_action :check_todo_owner, only: [:show, :update, :destroy]
 
-    # GET /todos
+    # GET /users/:user_id/todos
     def index
-        @todos = Todo.where(user_id: session[:user_id])
+        @todos = Todo.where(user_id: params[:user_id])
         render json: @todos, status: :ok
     end
 
-    # GET /todos/:id
+    # GET /users/:user_id/todos/:id
     def show
         render json: @todo, status: :ok
     end
 
-    # POST /todos
+    # POST /users/:user_id/todos
     def create
-        @todo = Todo.new(todo_text: todo_params[:todo_text], 
-         todo_list_id: todo_params[:todo_list_id], user_id: session[:user_id])
-        if @todo.save
+        @todo = Todo.new(todo_params)
+        if params[:user_id] == @todo.user_id && @todo.save
             render json: @todo, status: :created
         else
             render json: { error: 'Unable to create todo'}, status: :bad_request
         end
     end
 
-    # PATCH /todos/:id
+    # PATCH /users/:user_id/todos/:id
     def update
         if @todo
             @todo.update(todo_params)
@@ -51,11 +50,11 @@ class Api::V1::TodosController < ApplicationController
     private
 
     def todo_params
-        params.require(:todo).permit(:todo_text, :todo_list_id)
+        params.require(:todo).permit(:todo_text, :user_id, :todo_list_id)
     end
 
     def check_todo_owner
-        @user = User.find(session[:user_id])
+        @user = User.find(params[:user_id])
         @todo = Todo.find(params[:id])
         if !@user || @user.id != @todo.user_id
             return render json: {error: "Todo doesn't belong to user."}, status: :unauthorized

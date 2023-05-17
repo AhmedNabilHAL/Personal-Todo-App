@@ -12,4 +12,14 @@ module ApplicationHelper
             render json: {error: "Not logged in."}, status: :unauthorized
         end
     end
+
+    def require_admin
+        if !logged_in?
+            render json: {error: "Not logged in."}, status: :unauthorized
+        end
+        @currect_user = currect_user
+        if @currect_user.role != "admin"
+            render json: {error: "Admin privileges required."}, status: :unauthorized
+        end
+    end
 end

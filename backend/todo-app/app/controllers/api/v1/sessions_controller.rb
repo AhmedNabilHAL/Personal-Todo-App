@@ -1,8 +1,9 @@
 class Api::V1::SessionsController < ApplicationController
+    include ApplicationHelper
 
     rescue_from Exception, :with => :handle_exception
-    # before_action :find_user, only: [:show, :update, :destroy]
-    
+    before_action :require_user_logged_in, only: [:logout]
+
     # POST /api/v1/login
     def login
         login_params
@@ -28,11 +29,7 @@ class Api::V1::SessionsController < ApplicationController
     def login_params
         params.require(:session).permit(:username, :password)
     end
-
-    # def find_user
-    #     @user = User.find(params[:id])
-    # end
-
+    
     def handle_exception(error)
         # flash[:error] = error.message
         render json: { error: error.message }, status: :bad_request
