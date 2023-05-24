@@ -2,7 +2,7 @@ import Todo from './todo';
 import TodoInput from './todo_input';
 import { useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { getTodosByListId, addTodo, updateTodo} from '../controllerAPI/mockAPI';
+import { getTodos, addTodo, updateTodo} from '../controllerAPI/API';
 import { ReactComponent  as ReactLogoTrash } from '../assets/trash-solid.svg'
 import { useUserContext } from './user_context';
 
@@ -42,7 +42,8 @@ function TodoList({ listId, handleDeleteTodoList }) {
 
   useState(() => {
     const fetchData = async () => {
-      setTodos(getTodosByListId(listId));
+      const fetched_todos = await getTodos();
+      setTodos(fetched_todos);
     };
 
     fetchData();
@@ -57,8 +58,8 @@ function TodoList({ listId, handleDeleteTodoList }) {
       <div className='w-full border-t-2 md:border-t-4 border-black border-opacity-20'></div>
       {todos.length !== 0 && <ul ref={listRef} className='divide-y-2 md:divide-y-4 divide-black divide-opacity-20
       border-b-2 md:border-b-4 border-black border-opacity-20'>
-        {todos.map(({ id, todo }) => {
-          return <Todo key={id} todoId={id} todo={todo} handleSubmit={handleUpdateTodo} />;
+        {todos.map(({ id, todo_text }) => {
+          return <Todo key={id} todoId={id} todo={todo_text} handleSubmit={handleUpdateTodo} />;
         })}
       </ul>}
       <button type='submit' onClick={() => handleDeleteTodoList(listId)}

@@ -1,15 +1,20 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import TodoList from './todo_list';
-import { getTodoLists, addTodoList, deleteTodoList } from '../controllerAPI/mockAPI';
+import { getTodoLists, addTodoList, deleteTodoList } from '../controllerAPI/API';
 import NavButton from './navButton';
 import { ReactComponent  as ReactLogoAdd } from '../assets/plus-solid.svg'
 import { useUserContext } from './user_context';
+import { useNavigate } from 'react-router-dom';
+
 
 function TodoLists() {
   const [todoLists, setTodoLists] = useState([]);
   const listRef = useRef(null);
   const user = useUserContext();
+  const navigate = useNavigate();
+
+  const disabled = (todoLists.length === 0)
 
   function handleAddTodoList(listName){
     console.log('new todo list');
@@ -52,18 +57,25 @@ function TodoLists() {
       behavior: 'smooth'})  
   }
 
-  useState(() => {
+  useEffect(() => {
     const fetchData = async () => {
-      setTodoLists(getTodoLists(user));
+      const fetched_todo_lists = await getTodoLists(user);
+      setTodoLists(fetched_todo_lists);
     };
 
     fetchData();
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    if (user === null)
+      navigate("/auth");
+  }, [user, navigate]);
+  
 
   return (
     <div className='bg-black bg-opacity-40 px-1 sm:px-4 py-4 grid grid-cols-3 grid-rows-6
     h-[50vh] rounded-lg'>
-      <NavButton direction={'left'} handleScroll={scrollToPrevPage} />
+      <NavButton direction={'left'} handleScroll={scrollToPrevPage} disabled={disabled} />
       <ul ref={listRef} className='row-span-full col-span-full overflow-y-hidden overflow-x-auto grid grid-flow-col
       auto-cols-[100%] gap-[15%] px-[10%] pb-4 snap-x snap-mandatory 
       scrollbar-thin scrollbar-track-zinc-700  scrollbar-thumb-zinc-500 scrollbar-thumb-rounded-full'>
@@ -71,7 +83,7 @@ function TodoLists() {
           <TodoList key={todoList.id} listId={todoList.id} handleDeleteTodoList={handleDeleteTodoList} />
         )}
       </ul>
-      <NavButton direction={'right'} handleScroll={scrollToNextPage} />
+      <NavButton direction={'right'} handleScroll={scrollToNextPage} disabled={disabled} />
       <button type='submit' 
       onClick={handleAddTodoList}
       className='group rounded-lg bg-black hover:bg-blue-700 w-[25%]

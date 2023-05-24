@@ -32,6 +32,7 @@ class Api::V1::SessionsController < ApplicationController
     
     def handle_exception(error)
         # flash[:error] = error.message
+        puts error.message
         render json: { error: error.message }, status: :bad_request
     end
 end

@@ -8,14 +8,14 @@ import { UserProvider } from './components/user_context';
 
 function App() {
 
-  const [user, setUser] = useState(0);
+  const [user, setUser] = useState(null);
 
   return (
     <UserProvider user={user}>
-      <div className='w-full min-h-screen flex flex-col text-slate-300 overflow-hidden'>
-        <Navbar />
-        <main className='w-5/6 md:w-2/3 lg:w-3/5 mx-auto py-5 flex-1 text-center'>
-          <BrowserRouter>
+      <BrowserRouter>
+        <div className='w-full min-h-screen flex flex-col text-slate-300 overflow-hidden'>
+          <Navbar />
+          <main className='w-5/6 md:w-2/3 lg:w-3/5 mx-auto py-5 flex-1 text-center'>
             <Routes>
               <Route path='/' element={ 
                 <Fragment>
@@ -23,14 +23,13 @@ function App() {
                   <TodoLists /> 
                 </Fragment>
               } />
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth" element={<Auth setUser={setUser} />} />
             </Routes>
-          </BrowserRouter>
-        </main>
-        <Footer/>
-      </div>
+          </main>
+          <Footer/>
+        </div>
+      </BrowserRouter>
     </UserProvider>
-    // parent container
     
   );
 }
