@@ -1,216 +1,141 @@
-let todoLists = [
-    {
-        creatorId: 0,
-        id: 1,
-        listName: 'first list'
-    },
-    {
-        creatorId: 0,
-        id: 2,
-        listName: 'second list'
-    },
-    {
-        creatorId: 0,
-        id: 3,
-        listName: 'third list'
-    },
-    {
-        creatorId: 0,
-        id: 4,
-        listName: 'fourth list'
-    },
-    {
-        creatorId: 0,
-        id: 5,
-        listName: 'fifth list'
-    },
-]
-let todos = [
-    {
-        id: 1,
-        creatorId: 0,
-        listId: 1,
-        todo: 'Lorem ipsum dolor sit amet'
-    },
-    {
-        creatorId: 0,
-        id: 2,
-        listId: 1,
-        todo: "consectetur adipiscing elit"
-    },
-    {
-        creatorId: 0,
-        id: 3,
-        listId: 1,
-        todo: "sed do eiusmod tempor incididunt ut labore"
-    },
-    {
-        creatorId: 0,
-        id: 4,
-        listId: 2,
-        todo: 'et dolore magna aliqua. In fermentum posuere urna nec tincidunt. Cursus turpis massa tincidunt dui. Morbi non arcu risus quis varius.'
-    },
-    {
-        creatorId: 0,
-        id: 5,
-        listId: 2,
-        todo: 'Laoreet suspendisse interdum consectetur'
-    },
-    {
-        creatorId: 0,
-        id: 6,
-        listId: 2,
-        todo: 'liberobus nisl. Metus aliquam eleifend mi in'
-    },
-    {
-        creatorId: 0,
-        id: 7,
-        listId: 3,
-        todo: "Vestibulum rhoncus est pellentesque elit ullamcorper"
-    },
-    {
-        creatorId: 0,
-        id: 8,
-        listId: 3,
-        todo: "Egestas maecenas pharetra convallis"
-    },
-    {
-        creatorId: 0,
-        id: 9,
-        listId: 3,
-        todo: "osuere morbi leo urna. Magna eget est lorem ipsum dolor sit."
-    }, 
-    {
-        creatorId: 0,
-        id: 10,
-        listId: 3,
-        todo: "Metus dictum at tempor commodo ullamcorper"
-    }, 
-    {
-        creatorId: 0,
-        id: 11,
-        listId: 3,
-        todo: "a lacus vestibulum"
-    }, 
-    {
-        creatorId: 0,
-        id: 12,
-        listId: 3,
-        todo: "do"
-    }, 
-    {
-        creatorId: 0,
-        id: 13,
-        listId: 3,
-        todo: "Lacus viverra vitae congue eu consequat ac felis donec"
-    }, 
-    {
-        creatorId: 0,
-        id: 14,
-        listId: 3,
-        todo: "Purus ut faucibus pulvinar elementum integer enim"
-    },
-    {
-        creatorId: 0,
-        id: 15,
-        listId: 4,
-        todo: "Purus ut faucibus pulvinar elementum integer enim"
-    }
-]
-
 export async function getTodos(){
-    var headers = new Headers();
-    headers.append("Content-Type", "application/json");
-
-    // var raw = JSON.stringify({"username": evt.target.username.value,"password": evt.target.password.value});
-   
-    var requestOptions = {
-        credentials: "include",
-        method: 'GET',
-        headers: headers
-    };
     try{
-        const response = await fetch(`http://localhost:8888/api/v1/todos`, requestOptions)
-        const data = await response.json();
-        console.log(data);
-        return data;
+        const todos = await sendRequest(`http://localhost:8888/api/v1/todos`, 'GET');
+        return todos;
     }
     catch (error){
-        console.log('error', error);
+        return null;
     }
 }
 
-export function getTodosByListId(listId){
-    return todos.filter((todo) => todo.listId === listId);
+export async function getTodosByListId(list_id){
+    try{
+        const todos = await getTodos();
+        return todos.filter((todo) => todo.todo_list_id === list_id);
+    }
+    catch(error){
+        return null;
+    }
+
 }
 
-export function getTodo(todoId){
-    const filtered = todos.filter((todo) => todo.id === todoId);
-
-    if (filtered.length) return filtered[0];
-    return null;
+export async function getTodo(todo_id){
+    try{
+        const todo = await sendRequest(`http://localhost:8888/api/v1/todos/${todo_id}`, 'GET');
+        return todo;
+    }
+    catch (error){
+        return null;
+    }
 }
 
-export function addTodo(todo){
+export async function addTodo(todo_body){
 
-    todos.push(todo);
-    return todo;
+    try{
+        const todo = await sendRequest(`http://localhost:8888/api/v1/todos`, 'POST', todo_body);
+        return todo;
+    }
+    catch (error){
+        return null;
+    }
 }
 
-export function updateTodo(todoId, updatedTodo){
-    todos = todos.map((todo) => todo.id === todoId ? updatedTodo : todo);
-    return updatedTodo;
+export async function updateTodo(todo_id, updatedTodo){
+    try{
+        const todo = await sendRequest(`http://localhost:8888/api/v1/todos/${todo_id}`, 'PUT', updatedTodo);
+        return todo;
+    }
+    catch (error){
+        return null;
+    }
 }
 
-export function deleteTodo(todoId){
-    todos = todos.filter((todo) => todo.id !== todoId);
-    return true;
+export async function deleteTodo(todo_id){
+    try{
+        const reply = await sendRequest(`http://localhost:8888/api/v1/todos/${todo_id}`, 'DELETE');
+        return reply;
+    }
+    catch (error){
+        return null;
+    }
 }
 
 /******************************************************************************/
 
 export async function getTodoLists(){
+    try{
+        const todo_lists = await sendRequest(`http://localhost:8888/api/v1/todo_lists`, 'GET');
+        return todo_lists;
+    }
+    catch (error){
+        return null;
+    }
+}
+
+export async function getTodoList(list_id){
+    try{
+        const todo_list = await sendRequest(`http://localhost:8888/api/v1/todo_lists/${list_id}`, 'GET');
+        return todo_list;
+    }
+    catch (error){
+        return null;
+    }
+}
+
+export async function addTodoList(todo_list_body){
+    try{
+        const todo_list = await sendRequest(`http://localhost:8888/api/v1/todo_lists`, 'POST', todo_list_body);
+        return todo_list;
+    }
+    catch (error){
+        console.log(error);
+        return null;
+    }
+}
+
+export async function updateTodoList(todo_list_id, updated_todo_list){
+    try{
+        const todo_list = await sendRequest(`http://localhost:8888/api/v1/todo_lists/${todo_list_id}`,
+         'POST', updated_todo_list);
+        return todo_list;
+    }
+    catch (error){
+        return null;
+    }
+}
+
+export async function deleteTodoList(todoListId){
+    try{
+        const reply = await sendRequest(`http://localhost:8888/api/v1/todo_lists/${todoListId}`, 'DELETE');
+        return reply;
+    }
+    catch (error){
+        return null;
+    }
+}
+
+async function sendRequest(url, method, body=null) {
     var headers = new Headers();
     headers.append("Content-Type", "application/json");
-
-    // var raw = JSON.stringify({"username": evt.target.username.value,"password": evt.target.password.value});
-   
+    
     var requestOptions = {
         credentials: "include",
-        method: 'GET',
-        headers: headers
+        method: method,
+        headers: headers,
     };
+    if (body != null) {
+        body = JSON.stringify(body);
+        requestOptions['body'] = body;
+    }
+    
+
     try{
-        const response = await fetch(`http://localhost:8888/api/v1/todo_lists`, requestOptions)
+        const response = await fetch(url, requestOptions)
         const data = await response.json();
         console.log(data);
         return data;
     }
     catch (error){
-        console.log('error', error);
+        console.log('error ', error);
     }
-    // return todoLists.filter((todoList) => todoList.creatorId === creatorId);
 }
-
-export function getTodoList(listId){
-    const filtered = todoLists.filter((todoList) => todoList.id === listId);
-    
-    if (filtered.length) return filtered[0];
-    return null;
-}
-
-export function addTodoList(todoList){
-    todoLists.push(todoList);
-    return todoList;
-}
-
-export function updateTodoList(todoListId, updatedTodoList){
-    todoLists = todoLists.map((todoList) => todoList.id === todoListId ? updatedTodoList : todoList);
-    return updatedTodoList;
-}
-
-export function deleteTodoList(todoListId){
-    todoLists = todoLists.filter((todoList) => todoList.id !== todoListId);
-    return true;
-}
-

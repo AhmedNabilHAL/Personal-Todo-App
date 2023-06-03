@@ -1,32 +1,33 @@
 import Todo from './todo';
 import TodoInput from './todo_input';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { flushSync } from 'react-dom';
-import { getTodos, addTodo, updateTodo} from '../controllerAPI/API';
+import { addTodo, updateTodo} from '../controllerAPI/API';
 import { ReactComponent  as ReactLogoTrash } from '../assets/trash-solid.svg'
 import { useUserContext } from './user_context';
 
 
 
-function TodoList({ listId, handleDeleteTodoList }) {
+function TodoList({ listId, handleDeleteTodoList, todos, setTodos }) {
   const listRef = useRef(null);
-  const [todos, setTodos] = useState([]);
   const user = useUserContext();
 
-  function handleAddTodo(todo){
+  async function handleAddTodo(todo){
     console.log('new todo');
 
-    const newTodo = {id: todos.length + 1, creatorId: user, listId: listId, todo};
-    addTodo(newTodo);
+    const newTodoBody = { todo_text: todo, todo_list_id: listId, user_id: user.id };
+    const newTodo = await addTodo(newTodoBody);
+    if (newTodo === null) return;
 
     setTodos(todos => [...todos, newTodo]);
   }
 
-  function handleUpdateTodo(todoId, todo){
+  async function handleUpdateTodo(todoId, todo){
     console.log('update todo: ' + todoId);
 
-    const updatedTodo = {id: todoId, creatorId: user, listId: listId, todo};
-    updateTodo(todoId, updatedTodo);
+    const updatedTodoBody = { todo_text: todo, todo_list_id: listId, user_id: user.id };
+    const updatedTodo = await updateTodo(todoId, updatedTodoBody);
+    if (updateTodo === null) return;
 
     setTodos(todos => todos.map((todo) => todo.id === todoId ? updatedTodo : todo));
   }
@@ -39,15 +40,6 @@ function TodoList({ listId, handleDeleteTodoList }) {
       block: 'nearest'
     });
   }
-
-  useState(() => {
-    const fetchData = async () => {
-      const fetched_todos = await getTodos();
-      setTodos(fetched_todos);
-    };
-
-    fetchData();
-  }, []);
     
   return (
     

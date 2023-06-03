@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import TodoList from './todo_list';
-import { getTodoLists, addTodoList, deleteTodoList } from '../controllerAPI/API';
+import { getTodoLists, addTodoList, deleteTodoList, getTodos } from '../controllerAPI/API';
 import NavButton from './navButton';
 import { ReactComponent  as ReactLogoAdd } from '../assets/plus-solid.svg'
 import { useUserContext } from './user_context';
@@ -10,22 +10,27 @@ import { useNavigate } from 'react-router-dom';
 
 function TodoLists() {
   const [todoLists, setTodoLists] = useState([]);
+  const [todos, setTodos] = useState([]);
   const listRef = useRef(null);
   const user = useUserContext();
   const navigate = useNavigate();
 
   const disabled = (todoLists.length === 0)
 
-  function handleAddTodoList(listName){
+  async function handleAddTodoList(){
     console.log('new todo list');
 
-    const newTodoList = {
-      creatorId: user,
-      id: todoLists.length + 1,
-      listName,
+    const newTodoListBody = {
+      user_id: user.id,
+      // name: listName,
     }
 
-    addTodoList(newTodoList);
+    console.log(newTodoListBody);
+
+    const newTodoList = await addTodoList(newTodoListBody);
+    if(newTodoList === null) {
+      return;
+    }
 
     flushSync(() => setTodoLists(prevTodoLists => [...prevTodoLists, newTodoList]));
 
@@ -35,14 +40,14 @@ function TodoLists() {
     });
   }
 
-  function handleDeleteTodoList(todoListId){
+  async function handleDeleteTodoList(todoListId){
     console.log('delete todo list: ' + todoListId);
     // scrollToNextPage();
 
-    const status = deleteTodoList(todoListId);
-    if (status){
-      setTodoLists(prevtodoLists => prevtodoLists.filter((todoList) => todoList.id !== todoListId));
-    }
+    const status = await deleteTodoList(todoListId);
+    if (status === null) return;
+
+    setTodoLists(prevtodoLists => prevtodoLists.filter((todoList) => todoList.id !== todoListId));
   }
 
   function scrollToNextPage(){
@@ -58,18 +63,27 @@ function TodoLists() {
   }
 
   useEffect(() => {
+    if (user === null)
+      navigate("/auth");
+  }, [user, navigate]);
+
+  useEffect(() => {
     const fetchData = async () => {
-      const fetched_todo_lists = await getTodoLists(user);
-      setTodoLists(fetched_todo_lists);
+      const fetchedTodoLists = await getTodoLists(user);
+      setTodoLists(fetchedTodoLists);
     };
 
     fetchData();
   }, [user]);
 
   useEffect(() => {
-    if (user === null)
-      navigate("/auth");
-  }, [user, navigate]);
+    const fetchData = async () => {
+      const fetched_todos = await getTodos();
+      setTodos(fetched_todos);
+    };
+
+    fetchData();
+  }, []);
   
 
   return (
@@ -80,7 +94,8 @@ function TodoLists() {
       auto-cols-[100%] gap-[15%] px-[10%] pb-4 snap-x snap-mandatory 
       scrollbar-thin scrollbar-track-zinc-700  scrollbar-thumb-zinc-500 scrollbar-thumb-rounded-full'>
         {todoLists.map(todoList => 
-          <TodoList key={todoList.id} listId={todoList.id} handleDeleteTodoList={handleDeleteTodoList} />
+          <TodoList key={todoList.id} listId={todoList.id} handleDeleteTodoList={handleDeleteTodoList}
+          todos={todos.filter(todo => todo.todo_list_id === todoList.id)} setTodos={setTodos} />
         )}
       </ul>
       <NavButton direction={'right'} handleScroll={scrollToNextPage} disabled={disabled} />
